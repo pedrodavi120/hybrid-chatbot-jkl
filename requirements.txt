@@ -1,0 +1,7 @@
+langchain==0.2.7
+langchain-community==0.2.7
+langchain-core==0.2.20
+langchain-ollama==0.1.0
+pypdf==4.3.1
+faiss-cpu==1.8.0.post1
+tiktoken==0.7.0

@@ -68,7 +68,7 @@ A solução opera de forma híbrida:
 1. **Inicie o Ollama**: Certifique-se de que o aplicativo Ollama esteja em execução.  
 2. Inicie o bot do WhatsApp:  
    Abra um terminal e execute o script Node.js.  
-   node seu\_arquivo\_principal.js
+   node app.js
 
    Escaneie o QR Code com seu celular para conectar.  
 3. **Teste a Interação**:  

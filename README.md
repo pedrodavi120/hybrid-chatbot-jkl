@@ -1,82 +1,94 @@
-# **Chatbot Híbrido para WhatsApp: JKL Veículos (com IA 100% Local)**
+# **Chatbot Híbrido com IA (LangChain \+ Ollama) para WhatsApp**
 
-## **📖 Descrição**
+Este é um projeto de seminário que demonstra a criação de um chatbot híbrido para WhatsApp. Ele combina um bot baseado em regras (para menus fixos) com um assistente de IA (usando LangChain e Ollama) para responder a perguntas abertas e complexas.
 
-Este projeto demonstra a criação de um chatbot para WhatsApp que combina uma abordagem baseada em regras (menu de opções) com um assistente de Inteligência Artificial 100% gratuito e local, usando **LangChain** e **Ollama**.
+## **🎯 Tema do Seminário**
 
-O chatbot é capaz de:
+**T9: Criação de assistente IA chatbot: langchain/n8n etc.**
 
-* Guiar usuários através de um menu de opções fixas para tarefas comuns.  
-* Responder perguntas abertas e complexas com base em uma base de conhecimento personalizada, **sem custos de API e sem enviar dados para fora**.
+Este projeto serve como a "aplicação de validação" solicitada, explorando o framework **LangChain** para criar um assistente de IA que roda localmente usando **Ollama** e o modelo gemma:2b.
 
-## **🏛️ Arquitetura da Solução**
+## **🏛️ Arquitetura da Solução (Híbrida)**
 
-A solução opera de forma híbrida:
+O sistema funciona combinando duas lógicas em um único bot do WhatsApp:
 
-1. **Interface (WhatsApp)**: O cliente interage com a loja.  
-2. **Orquestrador (Node.js \- whatsapp-web.js)**: Gerencia a conexão com o WhatsApp.  
-   * **Lógica de Regras**: Responde a comandos de menu (ex: "1").  
-   * **Lógica de IA**: Se for uma pergunta aberta, chama o cérebro de IA.  
-3. **Cérebro de IA (Python \+ LangChain \+ Ollama)**:  
-   * O script Node.js chama o script Python (chatbot\_ia\_jkl.py).  
-   * O script Python usa **LangChain** para carregar a base\_conhecimento\_jkl.md.  
-   * O LangChain se comunica com o **Ollama** (rodando no mesmo computador) para usar um modelo de IA local (como o gemma:2b do Google).  
-   * O modelo gera uma resposta baseada no conhecimento da JKL.  
-   * A resposta é impressa no console (stdout).  
-4. **Retorno**: O Node.js captura a resposta e a envia ao usuário.
+1. **Bot de Regras (Node.js \- whatsapp-web.js)**:  
+   * É o "cérebro" principal.  
+   * Gerencia a conexão com o WhatsApp.  
+   * Processa mensagens de entrada. Se for um número de menu (ex: "1", "2", "0"), ele responde com a mensagem pré-definida.  
+   * Se for qualquer outra coisa (uma pergunta), ele aciona o Bot de IA.  
+2. **Bot de IA (Python \- langchain \+ ollama)**:  
+   * É o "cérebro" de conhecimento.  
+   * É chamado pelo script Node.js (via exec).  
+   * Utiliza **LangChain** para orquestrar uma cadeia RAG (Retrieval-Augmented Generation).  
+   * **RAG (Geração Aumentada por Recuperação)**: O bot não "pensa" sozinho. Ele usa a pergunta do usuário para *buscar* informações relevantes dentro da base de conhecimento (base\_conhecimento\_jkl.md) e, em seguida, usa o modelo de IA (gemma:2b rodando no Ollama) para *gerar* uma resposta em linguagem natural baseada *apenas* nos fatos encontrados.
 
-## **🛠️ Tecnologias Utilizadas**
+### **Otimização com Índice FAISS**
 
-* **Orquestração**: Node.js, whatsapp-web.js, child\_process  
-* **Linguagem de IA**: Python 3.9+  
-* **Framework de IA**: LangChain  
-* **Servidor de IA Local**: Ollama  
-* **Modelo de Linguagem**: Google Gemma (ou qualquer modelo do Ollama)  
-* **Base de Conhecimento**: Arquivo Markdown (.md)
+Para garantir que as respostas da IA sejam rápidas, nós **pré-processamos** a base de conhecimento.
+
+* Um comando de inicialização (--init) lê o base\_conhecimento\_jkl.md **uma única vez** e o transforma em um banco de dados vetorial (usando FAISS), salvando-o na pasta faiss\_index.  
+* Quando o usuário faz uma pergunta, o script Python agora apenas *carrega* esse índice (o que é instantâneo), em vez de recriá-lo do zero, reduzindo o tempo de resposta de minutos para segundos.
 
 ## **⚙️ Instalação e Configuração**
 
-### **Parte 1: Ambiente Node.js (WhatsApp)**
+Siga estes passos para configurar e rodar o projeto em sua máquina local.
 
-1. Tenha o Node.js instalado.  
-2. Instale as dependências:  
-   npm install whatsapp-web.js qrcode-terminal
+### **Pré-requisitos**
 
-### **Parte 2: Ambiente de IA Local (Ollama)**
+1. **Node.js**: [https://nodejs.org/](https://nodejs.org/)  
+2. **Python** (versão 3.9+): [https://www.python.org/](https://www.python.org/)  
+3. **Ollama**: [https://ollama.com/](https://ollama.com/) (Instale e mantenha-o rodando em segundo plano).
 
-1. **Instale o Ollama:** Baixe e instale o programa em: [https://ollama.com/](https://ollama.com/)  
-2. **Baixe o Modelo de IA:** Após instalar o Ollama, abra seu terminal e execute o comando abaixo para baixar o modelo gemma:2b (aprox. 2.7 GB):  
-   ollama pull gemma:2b
+### **Passo 1: Configurar o Modelo de IA (Ollama)**
 
-3. **Verifique se o Ollama está rodando:** O Ollama deve estar em execução em segundo plano.
+Após instalar o Ollama, abra seu terminal e baixe o modelo que usaremos:
 
-### **Parte 3: Ambiente Python (LangChain)**
+ollama pull gemma:2b
 
-1. Tenha o Python 3.9+ instalado.  
-2. Crie e ative um ambiente virtual:  
-   python \-m venv venv  
-   source venv/bin/activate  \# macOS/Linux  
-   \# venv\\Scripts\\activate    \# Windows
+*(Certifique-se de que o Ollama esteja rodando antes de prosseguir).*
 
-3. Instale as dependências de Python (usando o novo requirements.txt):  
-   pip install \-r requirements.txt
+### **Passo 2: Configurar o Ambiente Python (IA)**
 
-4. **Não é necessário um arquivo .env\!** A autenticação é local.
+Em um terminal, na pasta do projeto:
+
+\# 1\. Crie um ambiente virtual  
+python \-m venv venv
+
+\# 2\. Ative o ambiente  
+\# No Windows (PowerShell):  
+.\\venv\\Scripts\\activate  
+\# No macOS/Linux:  
+\# source venv/bin/activate
+
+\# 3\. Instale as dependências do Python  
+pip install \-r requirements.txt
+
+### **Passo 3: Configurar o Bot do WhatsApp (Node.js)**
+
+Em **outro** terminal, na mesma pasta do projeto:
+
+\# 1\. Instale as dependências do Node.js  
+npm install
+
+### **Passo 4: Criar o Índice da IA (Passo Único)**
+
+Agora, volte para o terminal do Python (com o venv ativo) e rode o comando de inicialização para criar o índice FAISS. **Você só precisa fazer isso uma vez**:
+
+\# (Certifique-se que o (venv) está ativo)  
+.\\venv\\Scripts\\python.exe chatbot\_ia\_jkl.py \--init
+
+*(Isso vai ler o base\_conhecimento\_jkl.md e criar a pasta faiss\_index)*.
 
 ## **🚀 Como Executar**
 
-1. **Inicie o Ollama**: Certifique-se de que o aplicativo Ollama esteja em execução.  
-2. Inicie o bot do WhatsApp:  
-   Abra um terminal e execute o script Node.js.  
+Para rodar o chatbot, você precisa ter o **Ollama** rodando em segundo plano e, em seguida, iniciar o bot do Node.js:
+
+1. Verifique se o Ollama está rodando.  
+2. Abra o terminal do Node.js (aquele do "Passo 3").  
+3. Inicie o bot:  
    node app.js
 
-   Escaneie o QR Code com seu celular para conectar.  
-3. **Teste a Interação**:  
-   * Envie "Oi" para ver o menu.  
-   * Teste uma opção do menu, como "1".  
-   * Faça uma pergunta aberta da base\_conhecimento\_jkl.md, como:  
-     * "Qual a filosofia da empresa?"  
-     * "Vocês oferecem garantia estendida?"  
-     * "Como funciona a avaliação do meu carro na troca?"
+4. Escaneie o QR Code com seu celular.
 
-O bot irá alternar entre as respostas programadas e as respostas geradas pela sua IA local e gratuita.
+Pronto\! O bot híbrido está online. Envie uma opção de menu ("1") para testar o bot de regras. Em seguida, envie uma pergunta aberta ("Qual a história da JKL?") para testar o bot de IA.

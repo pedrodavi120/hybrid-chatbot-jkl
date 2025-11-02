@@ -1,5 +1,7 @@
 node_modules/
 
+faiss_index/
+
 venv/
 pycache/
 *.pyc
@@ -9,4 +11,5 @@ pycache/
 .idea/
 
 *.log
+
 .DS_Store

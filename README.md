@@ -91,4 +91,6 @@ Para rodar o chatbot, você precisa ter o **Ollama** rodando em segundo plano e,
 
 4. Escaneie o QR Code com seu celular.
 
+## **Link do vídeo da apresentação**: [https://https://youtu.be/oHCCn4_AgYY/](https://youtu.be/oHCCn4_AgYY))  
+
 Pronto\! O bot híbrido está online. Envie uma opção de menu ("1") para testar o bot de regras. Em seguida, envie uma pergunta aberta ("Qual a história da JKL?") para testar o bot de IA.
